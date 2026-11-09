@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Ataskado.Cli/Ataskado.Cli.csproj" />
+  <Project Path="Ataskado.Core/Ataskado.Core.csproj" />
+  <Project Path="Ataskado.Tests/Ataskado.Tests.csproj" />
+</Solution>
