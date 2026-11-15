@@ -67,14 +67,14 @@ public class TodoTaskTests
     }
 
     [Theory]
-    [InlineData("(A) Call Mom", "A")]
-    [InlineData("(A) x Find ticket prices", "A")]
-    [InlineData("(A) 2011-03-01 Review Tim's pull request +TodoTxtTouch @github due:2026-11-06", "A")]
-    [InlineData("x (A) Review Tim's pull request +TodoTxtTouch @github due:2026-11-06", "A")]
-    [InlineData("x 2011-03-02 (A) Review Tim's pull request +TodoTxtTouch @github due:2026-11-06", "A")]
+    [InlineData("(A) Call Mom", 'A')]
+    [InlineData("(A) x Find ticket prices", 'A')]
+    [InlineData("(A) 2011-03-01 Review Tim's pull request +TodoTxtTouch @github due:2026-11-06", 'A')]
+    [InlineData("x (A) Review Tim's pull request +TodoTxtTouch @github due:2026-11-06", 'A')]
+    [InlineData("x 2011-03-02 (A) Review Tim's pull request +TodoTxtTouch @github due:2026-11-06", 'A')]
     public void A_task_with_a_parenthesized_capital_letter_has_that_priority(
         string line,
-        string priorityExpected)
+        char? priorityExpected)
     {
         // Arrange
         // Act
@@ -95,6 +95,6 @@ public class TodoTaskTests
         Result<TodoTask> result = TodoTask.Parse(line);
 
         // Assert
-        Assert.Empty(result.Value.Priority);
+        Assert.Null(result.Value.Priority);
     }
 }

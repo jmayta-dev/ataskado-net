@@ -7,7 +7,7 @@ public sealed partial class TodoTask
 {
     #region Fields & Properties
     public bool IsCompleted { get; private set; }
-    public string Priority { get; private set; } = string.Empty;
+    public char? Priority { get; private set; }
     public DateOnly? CompletedOn { get; private set; }
     public DateOnly? CreatedOn { get; private set; }
     #endregion
@@ -81,15 +81,15 @@ public sealed partial class TodoTask
                 : null;
     }
 
-    private static string GetPriority(string line)
+    private static char? GetPriority(string line)
     {
         if (string.IsNullOrWhiteSpace(line))
-            return string.Empty;
+            return null;
 
         Match match = PriorityRegex().Match(line);
         return match.Groups["priority"].Success
-            ? match.Groups["priority"].Value
-            : string.Empty;
+            ? Convert.ToChar(match.Groups["priority"].Value)
+            : null;
     }
     #endregion
 
