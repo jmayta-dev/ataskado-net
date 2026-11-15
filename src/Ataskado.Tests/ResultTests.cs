@@ -1,4 +1,3 @@
-using Xunit;
 using Ataskado.Core.Domain;
 
 namespace Ataskado.Tests;
@@ -6,7 +5,7 @@ namespace Ataskado.Tests;
 public class ResultTests
 {
     [Fact]
-    public void Successful_result_is_success()
+    public void A_result_without_an_error_is_successful()
     {
         Result successfulResult = Result.Success();
         Assert.True(successfulResult.IsSuccess);
