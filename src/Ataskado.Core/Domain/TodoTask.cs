@@ -20,7 +20,7 @@ public sealed partial class TodoTask
     public static Result<TodoTask> Parse(string line)
     {
         if (string.IsNullOrWhiteSpace(line))
-            return TaskErrors.EmptyLine;
+            return TodoErrors.EmptyLine;
 
         Match match = PrefixesRegex().Match(line);
 

@@ -11,7 +11,7 @@ public class TodoTaskTests
     public void An_empty_line_returns_an_error(string line)
     {
         // Arrange
-        Error expectedError = TaskErrors.EmptyLine;
+        Error expectedError = TodoErrors.EmptyLine;
         // Act
         Result<TodoTask> result = TodoTask.Parse(line);
         // Assert
