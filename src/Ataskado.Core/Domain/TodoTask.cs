@@ -22,101 +22,61 @@ public sealed partial class TodoTask
         if (string.IsNullOrWhiteSpace(line))
             return TaskErrors.EmptyLine;
 
-        List<string> tokens = [.. line.Split()];
-        if (tokens.Any(t => string.IsNullOrWhiteSpace(t)))
-            return TaskErrors.InvalidLine;
+        Match match = PrefixesRegex().Match(line);
 
-        TodoTask todoTask = new();
+        (bool isCompleted, DateOnly? completedOn) = GetCompletion(match);
 
-        (bool isCompleted, DateOnly? completedOn) = GetCompletion(line);
-        todoTask.IsCompleted = isCompleted;
-        todoTask.CompletedOn = completedOn;
-
-        todoTask.Priority = GetPriority(line);
-        todoTask.CreatedOn = GetCreationDate(line);
+        TodoTask todoTask = new()
+        {
+            IsCompleted = isCompleted,
+            CompletedOn = completedOn,
+            Priority = GetPriority(match),
+            CreatedOn = GetCreationDate(match)
+        };
 
         return todoTask;
     }
 
-    private static (bool, DateOnly?) GetCompletion(string line)
+    private static (bool, DateOnly?) GetCompletion(Match match)
     {
-        if (string.IsNullOrWhiteSpace(line))
-            return (false, null);
-
-        Match match = CompletionRegex().Match(line);
-
         bool isCompleted = match.Groups["done"].Success;
-        DateOnly? completedOn = null;
-
-        if (match.Groups["completed"].Success &&
-            DateOnly.TryParseExact(
-                match.Groups["completed"].Value,
-                "yyyy-MM-dd",
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.None,
-                out DateOnly date))
-        {
-            completedOn = date;
-        }
+        DateOnly? completedOn = ParseDate(match.Groups["completed"]);
 
         return (isCompleted, completedOn);
     }
 
-    private static DateOnly? GetCreationDate(string line)
-    {
-        if (string.IsNullOrWhiteSpace(line))
-            return null;
+    private static DateOnly? GetCreationDate(Match match) =>
+        ParseDate(match.Groups["created"]);
 
-        Match match = CreationDateRegex().Match(line);
-        if (!match.Groups["created"].Success)
+    private static char? GetPriority(Match match)
+    {
+        return match.Groups["priority"].Success
+            ? match.Groups["priority"].Value[0]
+            : null;
+    }
+
+    private static DateOnly? ParseDate(Group group)
+    {
+        if (!group.Success)
             return null;
 
         return DateOnly.TryParseExact(
-            match.Groups["created"].Value,
+            group.Value,
             "yyyy-MM-dd",
             CultureInfo.InvariantCulture,
             DateTimeStyles.None,
-            out DateOnly creationDate)
-                ? creationDate
-                : null;
-    }
-
-    private static char? GetPriority(string line)
-    {
-        if (string.IsNullOrWhiteSpace(line))
-            return null;
-
-        Match match = PriorityRegex().Match(line);
-        return match.Groups["priority"].Success
-            ? Convert.ToChar(match.Groups["priority"].Value)
-            : null;
+            out DateOnly date) ? date : null;
     }
     #endregion
 
     #region Compiled Regex
     [GeneratedRegex(@"
-            ^                                                       # start
-            (?:(?<done>x)\s(?:(?<completed>\d{4}-\d{2}-\d{2})\s)?)? # completion
+            ^                                                                   # start
+            (?:(?<done>x)[ ](?:(?<completed>[0-9]{4}-[0-9]{2}-[0-9]{2})[ ])?)?  # completion
+            (?:\((?<priority>[A-Z])\)[ ])?                                      # priority
+            (?:(?<created>[0-9]{4}-[0-9]{2}-[0-9]{2})[ ])?                      # creation
         ",
-        RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace)]
-    private static partial Regex CompletionRegex();
-
-    [GeneratedRegex(@"
-            ^                                       # start
-            (?:x\s(?:\d{4}-\d{2}-\d{2}\s)?)?        # completion
-            (?:\([A-Z]\)\s)?                        # priority
-            (?:(?<created>\d{4}-\d{2}-\d{2})\s)?    # creation
-        ",
-        RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace)]
-
-    private static partial Regex CreationDateRegex();
-
-    [GeneratedRegex(@"
-            ^                                       # start
-            (?:x\s(?:\d{4}-\d{2}-\d{2}\s)?)?        # completion
-            (?:\((?<priority>[A-Z])\)\s)?           # priority
-        ",
-        RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace)]
-    private static partial Regex PriorityRegex();
+        RegexOptions.IgnorePatternWhitespace)]
+    private static partial Regex PrefixesRegex();
     #endregion
 }
