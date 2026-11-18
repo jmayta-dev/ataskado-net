@@ -1,14 +1,5 @@
 namespace Ataskado.Core.Domain;
 
-public enum ErrorType
-{
-    NotFound,
-    Conflict,
-    Validation
-}
-
-public sealed record Error(string Code, string Description, ErrorType Type);
-
 public class Result
 {
     public Error? Error { get; }
