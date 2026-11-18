@@ -22,37 +22,37 @@ public sealed partial class TodoTask
         if (string.IsNullOrWhiteSpace(line))
             return TodoErrors.EmptyLine;
 
+        TodoTask todoTask = new();
+
         Match match = PrefixesRegex().Match(line);
+        //
+        // get task prefixes
+        //
 
-        (bool isCompleted, DateOnly? completedOn) = GetCompletion(match);
+        // completion state
+        todoTask.IsCompleted = match.Groups["done"].Success;
 
-        TodoTask todoTask = new()
+        // completion date
+        if (match.Groups["completed"].Success)
         {
-            IsCompleted = isCompleted,
-            CompletedOn = completedOn,
-            Priority = GetPriority(match),
-            CreatedOn = GetCreationDate(match)
-        };
+            todoTask.CompletedOn = ParseDate(match.Groups["completed"]);
+            if (todoTask.CompletedOn == null)
+                return TodoErrors.InvalidCompletionDate;
+        }
+
+        // priority
+        if (match.Groups["priority"].Success)
+            todoTask.Priority = match.Groups["priority"].Value[0];
+
+        // creation date
+        if (match.Groups["created"].Success)
+        {
+            todoTask.CreatedOn = ParseDate(match.Groups["created"]);
+            if (todoTask.CreatedOn == null)
+                return TodoErrors.InvalidCreationDate;
+        }
 
         return todoTask;
-    }
-
-    private static (bool, DateOnly?) GetCompletion(Match match)
-    {
-        bool isCompleted = match.Groups["done"].Success;
-        DateOnly? completedOn = ParseDate(match.Groups["completed"]);
-
-        return (isCompleted, completedOn);
-    }
-
-    private static DateOnly? GetCreationDate(Match match) =>
-        ParseDate(match.Groups["created"]);
-
-    private static char? GetPriority(Match match)
-    {
-        return match.Groups["priority"].Success
-            ? match.Groups["priority"].Value[0]
-            : null;
     }
 
     private static DateOnly? ParseDate(Group group)
@@ -76,7 +76,7 @@ public sealed partial class TodoTask
             (?:\((?<priority>[A-Z])\)[ ])?                                      # priority
             (?:(?<created>[0-9]{4}-[0-9]{2}-[0-9]{2})[ ])?                      # creation
         ",
-        RegexOptions.IgnorePatternWhitespace)]
+        RegexOptions.IgnorePatternWhitespace | RegexOptions.ExplicitCapture)]
     private static partial Regex PrefixesRegex();
     #endregion
 }
